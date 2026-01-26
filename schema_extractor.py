@@ -33,4 +33,17 @@ class SchemaExtractor:
             return columns            
         except Exception as e:
             print(f"Error getting columns for table {table_name}: {str(e)}")
-            return []
+            return []    
+    def format_schema_for_prompt(self, schema: Optional[Dict[str, List[Dict[str, str]]]] = None) -> str:
+        if schema is None:
+            schema = self.get_schema()        
+        if not schema:
+            return "No tables available in the database."        
+        formatted_lines = ["Database Schema:", ""]        
+        for table_name, columns in schema.items():
+            formatted_lines.append(f"Table: {table_name}")
+            formatted_lines.append("Columns:")            
+            for col in columns:
+                formatted_lines.append(f"  - {col['name']} ({col['type']})")            
+            formatted_lines.append("")        
+        return "\n".join(formatted_lines)
