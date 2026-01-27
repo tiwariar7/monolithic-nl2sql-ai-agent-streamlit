@@ -77,3 +77,9 @@ class SQLValidator:
                 return True, description
         
         return False, ""
+        
+    def sanitize_sql(self, sql: str) -> str:
+        sql = sql.strip()
+        sql = sql.rstrip(';')
+        sql = re.sub(r'\s+', ' ', sql)
+        return sql
