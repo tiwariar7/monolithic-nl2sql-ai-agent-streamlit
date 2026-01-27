@@ -34,3 +34,10 @@ class SQLValidator:
             return False, f"Potential SQL injection detected: {injection_msg}"
         
         return True, ""
+
+    def _contains_multiple_statements(self, sql: str) -> bool:
+        sql_no_strings = re.sub(r"'[^']*'", '', sql)
+        sql_no_strings = re.sub(r'"[^"]*"', '', sql_no_strings)
+        sql_no_strings = sql_no_strings.rstrip(';').strip()
+        return ';' in sql_no_strings
+        
