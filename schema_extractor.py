@@ -59,4 +59,11 @@ class SchemaExtractor:
             col_names = [f"`{col['name']}`" for col in columns]
             formatted_lines.append(", ".join(col_names))
             formatted_lines.append("")        
-        return "\n".join(formatted_lines) 
+        return "\n".join(formatted_lines)    
+    def get_table_row_count(self, table_name: str) -> Optional[int]:
+        try:
+            result = self.conn.execute(f"SELECT COUNT(*) FROM {table_name}").fetchone()
+            return result[0] if result else None
+        except Exception as e:
+            print(f"Error getting row count for {table_name}: {str(e)}")
+            return None
