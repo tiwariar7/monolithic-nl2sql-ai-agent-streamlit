@@ -56,3 +56,24 @@ class SQLValidator:
                 return keyword
         
         return ""
+    
+    def _detect_sql_injection(self, sql: str) -> Tuple[bool, str]:
+        sql_no_strings = re.sub(r"'[^']*'", '', sql)
+        sql_no_strings = re.sub(r'"[^"]*"', '', sql_no_strings)
+        
+        if '--' in sql_no_strings or '/*' in sql_no_strings:
+            return True, "SQL comments detected outside of string literals"
+        
+        suspicious_patterns = [
+            (r'\bOR\s+1\s*=\s*1\b', "OR 1=1 pattern"),
+            (r'\bOR\s+\'1\'\s*=\s*\'1\'', "OR '1'='1' pattern"),
+            (r'\bAND\s+1\s*=\s*0\b', "AND 1=0 pattern"),
+            (r'\bUNION\s+ALL\s+SELECT\b', "UNION injection pattern"),
+        ]
+        
+        sql_upper = sql_no_strings.upper()
+        for pattern, description in suspicious_patterns:
+            if re.search(pattern, sql_upper):
+                return True, description
+        
+        return False, ""
