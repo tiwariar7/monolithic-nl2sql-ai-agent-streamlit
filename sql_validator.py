@@ -9,3 +9,5 @@ class SQLValidator:
         'COMMIT', 'ROLLBACK', 'SAVEPOINT', 'EXEC', 'EXECUTE',
         'ATTACH', 'DETACH', 'PRAGMA'
     ]
+    def __init__(self):
+        pass
