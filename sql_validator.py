@@ -40,4 +40,9 @@ class SQLValidator:
         sql_no_strings = re.sub(r'"[^"]*"', '', sql_no_strings)
         sql_no_strings = sql_no_strings.rstrip(';').strip()
         return ';' in sql_no_strings
+
+    def _starts_with_select(self, sql: str) -> bool:
+        sql_upper = sql.upper().strip()
+        return sql_upper.startswith('SELECT') or sql_upper.startswith('WITH')
+    
         
