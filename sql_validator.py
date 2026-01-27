@@ -34,15 +34,25 @@ class SQLValidator:
             return False, f"Potential SQL injection detected: {injection_msg}"
         
         return True, ""
-
+    
     def _contains_multiple_statements(self, sql: str) -> bool:
         sql_no_strings = re.sub(r"'[^']*'", '', sql)
         sql_no_strings = re.sub(r'"[^"]*"', '', sql_no_strings)
         sql_no_strings = sql_no_strings.rstrip(';').strip()
         return ';' in sql_no_strings
-
+    
     def _starts_with_select(self, sql: str) -> bool:
         sql_upper = sql.upper().strip()
         return sql_upper.startswith('SELECT') or sql_upper.startswith('WITH')
     
+    def _contains_dangerous_keywords(self, sql: str) -> str:
+        sql_upper = sql.upper()
+        sql_no_strings = re.sub(r"'[^']*'", '', sql_upper)
+        sql_no_strings = re.sub(r'"[^"]*"', '', sql_no_strings)
         
+        for keyword in self.DANGEROUS_KEYWORDS:
+            pattern = r'\b' + keyword + r'\b'
+            if re.search(pattern, sql_no_strings):
+                return keyword
+        
+        return ""
