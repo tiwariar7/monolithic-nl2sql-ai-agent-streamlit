@@ -46,4 +46,17 @@ class SchemaExtractor:
             for col in columns:
                 formatted_lines.append(f"  - {col['name']} ({col['type']})")            
             formatted_lines.append("")        
-        return "\n".join(formatted_lines)
+        return "\n".join(formatted_lines)    
+    def format_schema_for_display(self, schema: Optional[Dict[str, List[Dict[str, str]]]] = None) -> str:
+        if schema is None:
+            schema = self.get_schema()        
+        if not schema:
+            return "**No tables loaded**\n\nPlease upload a dataset to get started."        
+        formatted_lines = ["**Database Schema**", ""]        
+        for table_name, columns in schema.items():
+            col_count = len(columns)
+            formatted_lines.append(f"**{table_name}** ({col_count} columns)")
+            col_names = [f"`{col['name']}`" for col in columns]
+            formatted_lines.append(", ".join(col_names))
+            formatted_lines.append("")        
+        return "\n".join(formatted_lines) 
