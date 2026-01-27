@@ -77,9 +77,18 @@ class SQLValidator:
                 return True, description
         
         return False, ""
-        
+    
     def sanitize_sql(self, sql: str) -> str:
         sql = sql.strip()
         sql = sql.rstrip(';')
         sql = re.sub(r'\s+', ' ', sql)
         return sql
+    
+    def validate_and_sanitize(self, sql: str) -> Tuple[bool, str, str]:
+        is_valid, error_msg = self.validate(sql)
+        
+        if is_valid:
+            sanitized = self.sanitize_sql(sql)
+            return True, sanitized, ""
+        else:
+            return False, "", error_msg
