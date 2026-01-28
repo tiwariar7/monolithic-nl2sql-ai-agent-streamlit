@@ -34,3 +34,24 @@ class DataLoader:
             return table_name, True, f"Successfully loaded {len(df)} rows into table '{table_name}'"            
         except Exception as e:
             return table_name or "unknown", False, f"Error loading Excel: {str(e)}" 
+    def load_sqlite(self, file_path: str) -> Tuple[List[str], bool, str]:
+        try:
+            self.conn.execute(f"ATTACH '{file_path}' AS sqlite_db (TYPE SQLITE)")
+            tables_result = self.conn.execute(
+                "SELECT name FROM sqlite_db.sqlite_master WHERE type='table'"
+            ).fetchall()            
+            if not tables_result:
+                return [], False, "No tables found in SQLite database"            
+            loaded_tables = []
+            for (table_name,) in tables_result:
+                if table_name.startswith('sqlite_'):
+                    continue
+                self.conn.execute(f"CREATE OR REPLACE TABLE {table_name} AS SELECT * FROM sqlite_db.{table_name}")
+                loaded_tables.append(table_name)
+                self.loaded_tables.append(table_name)            
+            self.conn.execute("DETACH sqlite_db")            
+            if not loaded_tables:
+                return [], False, "No user tables found in SQLite database"            
+            return loaded_tables, True, f"Successfully loaded {len(loaded_tables)} tables: {', '.join(loaded_tables)}"            
+        except Exception as e:
+            return [], False, f"Error loading SQLite: {str(e)}"   
