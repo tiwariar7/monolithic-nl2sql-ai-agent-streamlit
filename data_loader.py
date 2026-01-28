@@ -55,3 +55,28 @@ class DataLoader:
             return loaded_tables, True, f"Successfully loaded {len(loaded_tables)} tables: {', '.join(loaded_tables)}"            
         except Exception as e:
             return [], False, f"Error loading SQLite: {str(e)}"   
+
+    def load_from_uploaded_file(self, uploaded_file, custom_table_name: Optional[str] = None) -> Tuple[str, bool, str]:
+        temp_path = f"temp_{uploaded_file.name}"        
+        try:
+            with open(temp_path, "wb") as f:
+                f.write(uploaded_file.getbuffer())            
+            file_extension = os.path.splitext(uploaded_file.name)[1].lower()            
+            if file_extension == '.csv':
+                result = self.load_csv(temp_path, custom_table_name)
+            elif file_extension in ['.xlsx', '.xls']:
+                result = self.load_excel(temp_path, custom_table_name)
+            elif file_extension == '.db':
+                tables, success, message = self.load_sqlite(temp_path)
+                result = (', '.join(tables) if tables else 'unknown', success, message)
+            else:
+                result = ('unknown', False, f"Unsupported file format: {file_extension}")            
+            return result            
+        except Exception as e:
+            return 'unknown', False, f"Error processing uploaded file: {str(e)}"
+        finally:
+            if os.path.exists(temp_path):
+                try:
+                    os.remove(temp_path)
+                except:
+                    pass
