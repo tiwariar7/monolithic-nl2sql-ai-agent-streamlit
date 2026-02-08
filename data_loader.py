@@ -85,4 +85,12 @@ class DataLoader:
         return self.conn    
 
     def get_loaded_tables(self) -> List[str]:
-        return self.loaded_tables.copy() 
+        return self.loaded_tables.copy()
+
+    @staticmethod
+    def _generate_table_name(file_path: str) -> str:
+        base_name = os.path.splitext(os.path.basename(file_path))[0]
+        table_name = ''.join(c if c.isalnum() or c == '_' else '_' for c in base_name)
+        if table_name and not table_name[0].isalpha():
+            table_name = 'table_' + table_name
+        return table_name.lower()
