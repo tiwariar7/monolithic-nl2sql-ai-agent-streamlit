@@ -84,3 +84,5 @@ class DataLoader:
     def get_connection(self) -> duckdb.DuckDBPyConnection:
         return self.conn    
 
+    def get_loaded_tables(self) -> List[str]:
+        return self.loaded_tables.copy() 
