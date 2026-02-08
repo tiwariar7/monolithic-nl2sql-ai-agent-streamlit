@@ -80,3 +80,7 @@ class DataLoader:
                     os.remove(temp_path)
                 except:
                     pass
+
+    def get_connection(self) -> duckdb.DuckDBPyConnection:
+        return self.conn    
+
