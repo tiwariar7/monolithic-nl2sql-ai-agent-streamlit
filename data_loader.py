@@ -19,8 +19,7 @@ class DataLoader:
             self.loaded_tables.append(table_name)            
             return table_name, True, f"Successfully loaded {len(df)} rows into table '{table_name}'"
         except Exception as e:
-            return table_name or "unknown", False, f"Error loading CSV: {str(e)}"
-
+            return table_name or "unknown", False, f"Error loading CSV: {str(e)}"    
     def load_excel(self, file_path: str, table_name: Optional[str] = None, sheet_name: int = 0) -> Tuple[str, bool, str]:
         try:
             if table_name is None:
@@ -33,7 +32,7 @@ class DataLoader:
             self.loaded_tables.append(table_name)            
             return table_name, True, f"Successfully loaded {len(df)} rows into table '{table_name}'"            
         except Exception as e:
-            return table_name or "unknown", False, f"Error loading Excel: {str(e)}" 
+            return table_name or "unknown", False, f"Error loading Excel: {str(e)}"    
     def load_sqlite(self, file_path: str) -> Tuple[List[str], bool, str]:
         try:
             self.conn.execute(f"ATTACH '{file_path}' AS sqlite_db (TYPE SQLITE)")
@@ -54,8 +53,7 @@ class DataLoader:
                 return [], False, "No user tables found in SQLite database"            
             return loaded_tables, True, f"Successfully loaded {len(loaded_tables)} tables: {', '.join(loaded_tables)}"            
         except Exception as e:
-            return [], False, f"Error loading SQLite: {str(e)}"   
-
+            return [], False, f"Error loading SQLite: {str(e)}"    
     def load_from_uploaded_file(self, uploaded_file, custom_table_name: Optional[str] = None) -> Tuple[str, bool, str]:
         temp_path = f"temp_{uploaded_file.name}"        
         try:
@@ -79,18 +77,27 @@ class DataLoader:
                 try:
                     os.remove(temp_path)
                 except:
-                    pass
-
+                    pass    
     def get_connection(self) -> duckdb.DuckDBPyConnection:
         return self.conn    
-
     def get_loaded_tables(self) -> List[str]:
-        return self.loaded_tables.copy()
-
+        return self.loaded_tables.copy()    
+    def close(self):
+        if self.conn:
+            self.conn.close()    
     @staticmethod
     def _generate_table_name(file_path: str) -> str:
         base_name = os.path.splitext(os.path.basename(file_path))[0]
         table_name = ''.join(c if c.isalnum() or c == '_' else '_' for c in base_name)
         if table_name and not table_name[0].isalpha():
             table_name = 'table_' + table_name
-        return table_name.lower()
+        return table_name.lower()    
+    @staticmethod
+    def _clean_column_name(col_name: str) -> str:
+        cleaned = ''.join(c if c.isalnum() or c == '_' else '_' for c in str(col_name))
+        while '__' in cleaned:
+            cleaned = cleaned.replace('__', '_')
+        cleaned = cleaned.strip('_')
+        if not cleaned or cleaned[0].isdigit():
+            cleaned = 'col_' + cleaned
+        return cleaned.lower()
