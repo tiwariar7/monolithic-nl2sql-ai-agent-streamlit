@@ -3,6 +3,11 @@ import pandas as pd
 import os
 from typing import Optional
 
+from data_loader import DataLoader
+from schema_extractor import SchemaExtractor
+from sql_validator import SQLValidator
+from sql_agent import SQLAgent
+from db_executor import DBExecutor
 
 st.set_page_config(
     page_title="SQL Agent - Natural Language to SQL",
@@ -47,3 +52,14 @@ st.markdown("""
     }
 </style>
 """, unsafe_allow_html=True)
+
+def init_session_state():
+    if 'data_loader' not in st.session_state:
+        st.session_state.data_loader = DataLoader()    
+    if 'schema' not in st.session_state:
+        st.session_state.schema = {}    
+    if 'loaded_files' not in st.session_state:
+        st.session_state.loaded_files = []    
+    if 'query_history' not in st.session_state:
+        st.session_state.query_history = []
+    
