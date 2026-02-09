@@ -62,4 +62,17 @@ def init_session_state():
         st.session_state.loaded_files = []    
     if 'query_history' not in st.session_state:
         st.session_state.query_history = []
+
+def load_uploaded_file(uploaded_file) -> tuple:
+    try:
+        table_name, success, message = st.session_state.data_loader.load_from_uploaded_file(uploaded_file)        
+        if success:
+            conn = st.session_state.data_loader.get_connection()
+            extractor = SchemaExtractor(conn)
+            st.session_state.schema = extractor.get_schema()
+            if uploaded_file.name not in st.session_state.loaded_files:
+                st.session_state.loaded_files.append(uploaded_file.name)        
+        return success, message    
+    except Exception as e:
+        return False, f"Error loading file: {str(e)}"
     
