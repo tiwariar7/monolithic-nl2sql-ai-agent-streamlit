@@ -76,3 +76,69 @@ def load_uploaded_file(uploaded_file) -> tuple:
     except Exception as e:
         return False, f"Error loading file: {str(e)}"
     
+def process_natural_language_query(question: str, api_key: Optional[str] = None, model: str = "llama-3.3-70b-versatile") -> dict:
+    try:
+        if not st.session_state.schema:
+            return {
+                'sql': '',
+                'result': pd.DataFrame(),
+                'success': False,
+                'message': 'No database loaded. Please upload a dataset first.'
+            }        
+        conn = st.session_state.data_loader.get_connection()
+        extractor = SchemaExtractor(conn)
+        validator = SQLValidator()
+        executor = DBExecutor(conn)
+        schema_text = extractor.format_schema_for_prompt(st.session_state.schema)
+        if api_key:
+            try:
+                agent = SQLAgent(api_key=api_key, model=model)
+                st.info(f"Using Groq API with {model}")
+            except Exception as e:
+                return {
+                    'sql': '',
+                    'result': pd.DataFrame(),
+                    'success': False,
+                    'message': f'Groq API Error: {str(e)}'
+                }
+        else:
+            st.error("Groq API key required. Please provide your API key in the sidebar.")
+            return {
+                'sql': '',
+                'result': pd.DataFrame(),
+                'success': False,
+                'message': 'Groq API key required'
+            }
+        with st.spinner("Generating SQL query..."):
+            sql = agent.generate_sql(question, schema_text)        
+        if sql.startswith("ERROR:"):
+            return {
+                'sql': sql,
+                'result': pd.DataFrame(),
+                'success': False,
+                'message': sql
+            }
+        is_valid, error_msg = validator.validate(sql)
+        if not is_valid:
+            return {
+                'sql': sql,
+                'result': pd.DataFrame(),
+                'success': False,
+                'message': f'SQL Validation Failed: {error_msg}'
+            }
+        sql = validator.sanitize_sql(sql)
+        with st.spinner("Executing query..."):
+            success, df, exec_message = executor.execute_query(sql)        
+        return {
+            'sql': sql,
+            'result': df,
+            'success': success,
+            'message': exec_message if success else exec_message
+        }    
+    except Exception as e:
+        return {
+            'sql': '',
+            'result': pd.DataFrame(),
+            'success': False,
+            'message': f'Unexpected error: {str(e)}'
+        }
