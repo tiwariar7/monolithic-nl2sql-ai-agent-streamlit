@@ -1,5 +1,5 @@
 import duckdb
 
-lass DBExecutor:
+class DBExecutor:
     def __init__(self, conn: duckdb.DuckDBPyConnection):
         self.conn = conn
