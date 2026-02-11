@@ -293,3 +293,6 @@ def main():
         <p>Built with Streamlit| AI by Groq </p>
     </div>
     """, unsafe_allow_html=True)
+
+if __name__ == "__main__":
+    main()
